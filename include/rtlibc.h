@@ -18,10 +18,9 @@
 #include "libc/libc_dirent.h"
 #include "libc/libc_signal.h"
 #include "libc/libc_fdset.h"
-#include "libc/libc_stdio.h"
 
 #ifndef RT_USING_LIBC
-#if defined(__CC_ARM) || defined(__CLANG_ARM) || defined(__IAR_SYSTEMS_ICC__)
+#if defined(__ARMCC_VERSION) || defined(__IAR_SYSTEMS_ICC__)
 typedef signed long off_t;
 typedef int mode_t;
 #endif
