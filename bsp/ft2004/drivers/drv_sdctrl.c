@@ -14,7 +14,7 @@
 #include "ft_debug.h"
 #include "ft_types.h"
 #include "ft_generic_timer.h"
-#include <drivers/mmcsd_core.h>
+#include <drivers/dev_mmcsd_core.h>
 #include "interrupt.h"
 #include "rtconfig.h"
 #include "ft_cache.h"
@@ -45,7 +45,7 @@ typedef struct
 
 ft_sdctrl_class_t sdctrl_class;
 
-ALIGN(SDCTR_ALIGN_LEN)
+rt_align(SDCTR_ALIGN_LEN)
 static rt_uint8_t cache_buf[SDCTR_BUFF_SIZE];
 
 static void rthw_sdctrl_send_command(ft_sdctrl_class_t *class_p, struct mmcsd_pkg *pkg);
@@ -243,7 +243,7 @@ static void rthw_sdctrl_request(struct rt_mmcsd_host *host, struct rt_mmcsd_req 
         if (pkg.cmd->cmd_code == 5 || pkg.cmd->cmd_code == 1)
         {
             rt_kprintf("cmd_code is not vaild %x \r\n", pkg.cmd->cmd_code);
-            pkg.cmd->err = RT_EINVAL;
+            pkg.cmd->err = -RT_EINVAL;
             goto _exit;
         }
 
@@ -555,12 +555,12 @@ static rt_err_t rthw_sdctrl_create(ft_sdctrl_class_t *class_p)
     if (host == RT_NULL)
     {
         LOG_E("L:%d F:%s mmcsd alloc host fail");
-        return RT_ENOMEM;
+        return -RT_ENOMEM;
     }
 
     class_p->ft_sdctrl.config = *(FSdCtrl_Config_t *)FSdCtrl_LookupConfig(0);
     rt_event_init(&class_p->event, "sdctrl", RT_IPC_FLAG_FIFO);
-    rt_mutex_init(&class_p->mutex, "sdctrl", RT_IPC_FLAG_FIFO);
+    rt_mutex_init(&class_p->mutex, "sdctrl", RT_IPC_FLAG_PRIO);
 
     class_p->host = host;
     host->ops = &ops;
@@ -598,7 +598,7 @@ int rthw_sdctrl_init(void)
 
 #endif
     normalIrqFlgs |= NORMAL_IRQ_CC;
-    /* register handler、irq enable bit and wait callback */
+    /* register handler irq enable bit and wait callback */
     FSdCtrl_SetHandler(ft_sdctrl_p, FTSDCTRL_CMDIRQID, rthw_sdctrl_nomarl_callback, ft_sdctrl_p);
     FSdCtrl_NormalIrqSet(ft_sdctrl_p, normalIrqFlgs);
     FSdCtrl_CmdWaitRegister(ft_sdctrl_p, rthw_sdctrl_cmd_wait);

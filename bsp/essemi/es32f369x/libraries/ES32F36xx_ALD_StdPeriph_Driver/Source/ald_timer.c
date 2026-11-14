@@ -9,6 +9,9 @@
   * @date    06 Nov 2019
   * @author  AE Team
   * @note
+  *          Change Logs:
+  *          Date            Author          Notes
+  *          06 Nov 2019     AE Team         The first version
   *
   * Copyright (C) Shanghai Eastsoft Microelectronics Co. Ltd. All rights reserved.
   *
@@ -25,13 +28,11 @@
   * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
-  *
-  *********************************************************************************
+  **********************************************************************************
   */
 
 #include <string.h>
-#include "ald_timer.h"
-#include "ald_cmu.h"
+#include "ald_conf.h"
 
 
 /** @addtogroup ES32FXXX_ALD
@@ -737,7 +738,7 @@ void ald_timer_pwm_stop_by_dma(timer_handle_t *hperh, timer_channel_t ch)
   * @param  freq: PWM freq to set
   * @retval None
   */
-void ald_timer_pwm_set_freq(timer_handle_t *hperh, uint16_t freq)
+void ald_timer_pwm_set_freq(timer_handle_t *hperh, uint32_t freq)
 {
 	uint32_t _arr;
 
@@ -758,12 +759,12 @@ void ald_timer_pwm_set_freq(timer_handle_t *hperh, uint16_t freq)
   *		@arg TIMER_CHANNEL_2: TIMER Channel 2 selected
   *		@arg TIMER_CHANNEL_3: TIMER Channel 3 selected
   *		@arg TIMER_CHANNEL_4: TIMER Channel 4 selected
-  * @param  duty: PWM duty to set
+  * @param  duty: PWM duty to set [0, 100]
   * @retval None
   */
 void ald_timer_pwm_set_duty(timer_handle_t *hperh, timer_channel_t ch, uint16_t duty)
 {
-	uint32_t tmp = (hperh->init.period + 1) * duty / 100 - 1;
+	uint32_t tmp = (hperh->init.period + 1) * duty / 100;
 
 	if (ch == TIMER_CHANNEL_1)
 		WRITE_REG(hperh->perh->CCVAL1, tmp);

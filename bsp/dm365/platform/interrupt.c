@@ -15,7 +15,7 @@
 
 #define MAX_HANDLERS    64
 
-extern rt_uint32_t rt_interrupt_nest;
+extern rt_atomic_t rt_interrupt_nest;
 
 struct rt_irq_desc irq_desc[MAX_HANDLERS];
 
@@ -286,8 +286,7 @@ int cmd_list_irq(int argc, char** argv)
     list_irq();
     return 0;
 }
-FINSH_FUNCTION_EXPORT_ALIAS(cmd_list_irq, __cmd_list_irq, list system irq.);
-
+MSH_CMD_EXPORT_ALIAS(cmd_list_irq, list_irq, list system irq);
 #endif
 #endif
 #endif

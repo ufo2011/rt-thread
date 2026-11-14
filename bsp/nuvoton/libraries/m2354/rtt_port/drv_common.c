@@ -24,7 +24,7 @@
 /**
  * This function will initial M487 board.
  */
-RT_WEAK void rt_hw_board_init(void)
+rt_weak void rt_hw_board_init(void)
 {
     /* Init System/modules clock */
     nutool_modclkcfg_init();
@@ -58,7 +58,7 @@ RT_WEAK void rt_hw_board_init(void)
     rt_hw_uart_init();
 #endif
 
-#ifdef RT_USING_CONSOLE
+#if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
     rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif
 

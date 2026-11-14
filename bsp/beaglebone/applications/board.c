@@ -13,15 +13,10 @@
 #include <finsh.h>
 
 #include "board.h"
+#include <mmu.h>
 #include <interrupt.h>
 
-#ifdef RT_USING_VMM
-#include <vmm.h>
-static rt_uint32_t DMTIMER = 0;
-#define TIMER_HW_BASE (DMTIMER)
-#else
 #define TIMER_HW_BASE AM33XX_DMTIMER_7_REGS
-#endif
 
 #define DMTIMER_TCLR_AR                         (0x00000002u)
 #define DMTIMER_TCLR_CE                         (0x00000040u)
@@ -54,11 +49,7 @@ static void timer_clk_init(void)
 {
     unsigned long prcm_base;
 
-#ifdef RT_USING_VMM
-    prcm_base = vmm_find_iomap("PRCM");
-#else
     prcm_base = AM33XX_PRCM_REGS;
-#endif
 
     /* software forced wakeup */
     CM_PER_L4LS_CLKSTCTRL_REG(prcm_base) |= 0x2;
@@ -98,10 +89,6 @@ static void timer_clk_init(void)
 int rt_hw_timer_init(void)
 {
     rt_uint32_t counter;
-
-#ifdef RT_USING_VMM
-    DMTIMER = vmm_find_iomap("TIMER7");
-#endif
 
     timer_clk_init();
 
@@ -147,21 +134,25 @@ INIT_BOARD_EXPORT(rt_hw_timer_init);
  */
 void rt_hw_board_init(void)
 {
+    rt_hw_mmu_init();
+
+    /* init hardware interrupt */
+    rt_hw_interrupt_init();
+
+    /* Heap initialization */
+#if defined(RT_USING_HEAP)
+    rt_system_heap_init((void *)HEAP_BEGIN, (void *)HEAP_END);
+#endif
+
     rt_components_board_init();
     rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
 }
 
 void rt_hw_cpu_reset(void)
 {
-    unsigned long prcm_base;
+    unsigned long prcm_base = AM33XX_PRCM_REGS;
 
-#ifdef RT_USING_VMM
-    prcm_base = vmm_find_iomap("PRCM");
-#else
-    prcm_base = AM33XX_PRCM_REGS;
-#endif
     REG32(PRM_DEVICE(prcm_base)) = 0x1;
     RT_ASSERT(0);
 }
-FINSH_FUNCTION_EXPORT_ALIAS(rt_hw_cpu_reset, reboot, reboot the cpu);
-FINSH_FUNCTION_EXPORT_ALIAS(rt_hw_cpu_reset, __cmd_reboot, reboot the cpu);
+MSH_CMD_EXPORT_ALIAS(rt_hw_cpu_reset, reboot, reboot the cpu);

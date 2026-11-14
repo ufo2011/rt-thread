@@ -1,19 +1,13 @@
-/***************************************************************************//**
- * @file    drv_leuart.c
- * @brief   LEUART driver of RT-Thread RTOS for EFM32
- *  COPYRIGHT (C) 2012, RT-Thread Development Team
- * @author  onelife
- * @version 1.0
- *******************************************************************************
- * @section License
- * The license and distribution terms for this file may be found in the file
- *  LICENSE in this distribution or at http://www.rt-thread.org/license/LICENSE
- *******************************************************************************
- * @section Change Logs
+/*
+ * Copyright (c) 2006-2022, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
  * Date         Author      Notes
  * 2011-12-09   onelife     Initial creation for EFM32
  * 2011-12-27   onelife     Utilize "LEUART_PRESENT" and "LEUART_COUNT"
- ******************************************************************************/
+ */
 
 /***************************************************************************//**
  * @addtogroup efm32
@@ -253,7 +247,7 @@ static rt_err_t rt_leuart_close(rt_device_t dev)
  * @return
  *   Number of read bytes
  ******************************************************************************/
-static rt_size_t rt_leuart_read (
+static rt_ssize_t rt_leuart_read (
     rt_device_t     dev,
     rt_off_t        pos,
     void            *buffer,
@@ -378,7 +372,7 @@ static rt_size_t rt_leuart_read (
  * @return
  *   Number of written bytes
  ******************************************************************************/
-static rt_size_t rt_leuart_write (
+static rt_ssize_t rt_leuart_write (
     rt_device_t     dev,
     rt_off_t        pos,
     const void*     buffer,
@@ -443,7 +437,7 @@ static rt_size_t rt_leuart_write (
 //      {
 //          while(leuart->state & LEUART_STATE_TX_BUSY)
 //          {
-//              rt_thread_sleep(LEUART_WAIT_TIME_TX);
+//              rt_thread_delay(LEUART_WAIT_TIME_TX);
 //          }
 //      }
 // TODO: This function blocks the process

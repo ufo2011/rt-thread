@@ -24,10 +24,14 @@ Robomaster 开发板C型 是大疆创新科技有限公司推出的一款基于 
 
 该开发板常用 **板载资源** 如下：
 
-- MCU: STM32F407IGH6TR, 168MHz Freq, 1024KB FLASH, 192KB RAM(含64KB CCM RAM)。
+- MCU：STM32F407IGH6TR, 主频 168MHz, 1024KB FLASH, 192KB RAM(含64KB CCM RAM)
+- 常用外设
+  - 三色 LED：LED_R(PH12), LED_G(PH11), LED_B(PH11), 
+  - 按键：KEY(PA0)
+  - 电压检测：ADC_BAT(PF10)
+- 常用接口：UART 接口、CAN 总线接口、PWM 接口
 - 调试接口：SWD
-- 常用外设：用户自定义 LED、按键、蜂鸣器、六轴惯性测量单元和磁力计、电压检测 ADC。
-- 常用接口：5V 接口、BOOT 配置接口、micro USB 接口、可配置 I/O 接口、UART 接口、CAN 总线接口、PWM 接口、DBUS接口、数字摄像头 FPC 接口。
+
 
 开发板的用户手册：[RoboMaster 开发板 C 型用户手册.pdf](https://rm-static.djicdn.com/tem/35228/RoboMaster%20%20%E5%BC%80%E5%8F%91%E6%9D%BF%20C%20%E5%9E%8B%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C.pdf)
 
@@ -43,14 +47,11 @@ Robomaster 开发板C型 是大疆创新科技有限公司推出的一款基于 
 | IST8310      |   暂不支持   | 三轴磁力计                           |
 | **片上外设** | **支持情况** | **备注**                             |
 | GPIO         |     支持     | PA0, PA1... PH1 ---> PIN: 0, 1...144 |
-| UART         |     支持     | UART1,  UART3(DBUS),  UART6          |
-| CAN          |   下阶段支持   | CAN1, CAN2                           |
-| PWM          |   下阶段支持   |                                      |
-| SPI          |   下阶段支持   | BMI088, 用户SPI接口 |
-| I2C          |   下阶段支持   | IST8310, 用户 I2C 接口 |
-| USB          |   暂不支持   |                                      |
-| **扩展模块** | **支持情况** | **备注**                             |
-| 无           |              |                                      |
+| UART         |     支持     | UART1(FinSH),  UART3(DBUS),  UART6          |
+| CAN          |     支持    | CAN1, CAN2                           |
+| PWM          |   支持   | TIM1(CH1/2/3/4), TIM4(CH3), TIM5(CH1/2/3), TIM8(CH1/2/3) |
+| SPI          |   支持   | SPI2 |
+| IIC          |   支持   | 模拟IIC(SDA-->PF0, SCL-->PF1) |
 
 ## 使用说明
 
@@ -69,6 +70,14 @@ Robomaster 开发板C型 是大疆创新科技有限公司推出的一款基于 
 
 本 BSP 为开发者提供 MDK5 和 IAR 工程，并且支持 GCC 开发环境。下面以 MDK5 开发环境为例，介绍如何将系统运行起来。
 
+**请注意！！！**
+
+在执行编译工作前请先打开ENV执行以下指令（该指令用于拉取必要的HAL库及CMSIS库，否则无法通过编译）：
+
+```bash
+pkgs --update
+```
+
 #### 硬件连接
 
 将准备好的 ST-Link/JLink/DapLink 与开发板连接，开发板上的调试接口为 MX1.25 4Pin。C板上没有电源指示灯，供电可以选用：调试接口的 3.3V 输入，micro USB 接口供电，XT30 电源输入。 
@@ -83,20 +92,20 @@ Robomaster 开发板C型 是大疆创新科技有限公司推出的一款基于 
 
 下载程序成功之后，系统会自动运行，观察开发板上 LED 的运行效果，LED 会以蓝光进行周期性闪烁。
 
-此 BSP 的 FinSH 默认使用串口 1 (C板外壳上标有UART2的4Pin接口)，在终端工具里打开相应的串口（115200-8-1-N），复位设备后，可以看到 RT-Thread 的输出信息:
+此 BSP 的 FinSH 默认使用串口 1 ( C 板外壳上标有 UART2 的 4Pin 接口)，在终端工具里打开相应的串口（115200-8-1-N），复位设备后，可以看到 RT-Thread 的输出信息:
 
 ```bash
  \ | /
 - RT -     Thread Operating System
- / | \     4.0.4 build Jun 30 2021
- 2006 - 2021 Copyright by rt-thread team
+ / | \     4.1.1 build Jul 29 2022 23:31:38
+ 2006 - 2022 Copyright by RT-Thread team
 msh >
 ```
 > 终端工具推荐使用 [MobaXterm](https://mobaxterm.mobatek.net/) 或 [Xshell](https://www.netsarang.com/en/free-for-home-school/)，均有免费的个人版本
 
 ### 进阶使用
 
-此 BSP 默认只开启了 GPIO 和 串口 2 的功能，更多高级功能需要利用 ENV 工具对 BSP 进行配置，步骤如下：
+此 BSP 默认只开启了 GPIO 和 UART1(丝印为 UART2 4pin 接口) 的功能，更多高级功能需要利用 ENV 工具对 BSP 进行配置，步骤如下：
 
 1. 在 BSP 下打开 env 工具。
 
@@ -118,3 +127,5 @@ msh >
 维护人:
 
 - [crazt](https://github.com/CraztTnspt) ，邮箱：<crazt@foxmail.com>
+- [Meng](https://github.com/Meng2025) ，邮箱：<m@njust.edu.cn>
+

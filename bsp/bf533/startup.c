@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2021, RT-Thread Development Team
+ * Copyright (c) 2006-2023, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -12,7 +12,7 @@
 #include <rtthread.h>
 #include "application.h"
 #include "board.h"
-#include "serial.h"
+#include "drivers/dev_serial.h"
 #include "finsh.h"
 
 extern "asm" int rtt_heap_start;
@@ -62,7 +62,9 @@ void rtthread_startup(void)
     /* init finsh */
     extern int finsh_system_init(void);
     finsh_system_init();
+#if !defined(RT_USING_POSIX_STDIO) && defined(RT_USING_DEVICE)
     finsh_set_device("uart0");
+#endif
 #endif
 
     rt_system_timer_thread_init();

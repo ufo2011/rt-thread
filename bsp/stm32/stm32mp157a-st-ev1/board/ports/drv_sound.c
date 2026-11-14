@@ -13,16 +13,20 @@
 
 #ifdef BSP_USING_AUDIO
 #include "drv_wm8994.h"
-#include <dfs_posix.h>
+#include <dfs_file.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
 
 #define DRV_DEBUG
 #define LOG_TAG             "drv.sound"
 #include <drv_log.h>
 
-#define SOUND_BUS_NAME       "i2c2"
+#define SOUND_BUS_NAME "swi2c2"
 
 #define TX_FIFO_SIZE         (4096)
-#if defined(__CC_ARM) || defined(__CLANG_ARM)
+#if defined(__ARMCC_VERSION)
 __attribute__((at(0x2FFC2000))) static rt_uint8_t AUDIO_TX_FIFO[TX_FIFO_SIZE];
 #elif defined ( __GNUC__ )
 static rt_uint8_t AUDIO_TX_FIFO[TX_FIFO_SIZE] __attribute__((section(".AudioSection")));
@@ -335,7 +339,7 @@ static rt_err_t sound_init(struct rt_audio_device *audio)
     if (result != RT_EOK)
     {
         LOG_E("can't find low level audio device!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     return result;
@@ -358,7 +362,7 @@ static rt_err_t sound_start(struct rt_audio_device *audio, int stream)
 
         if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, snd_dev->tx_fifo, TX_FIFO_SIZE / 2) != HAL_OK)
         {
-            return RT_ERROR;
+            return -RT_ERROR;
         }
     }
 
@@ -422,7 +426,7 @@ int rt_hw_sound_init(void)
     if (snd_dev.decoder == RT_NULL)
     {
         LOG_E("cant't find lowlevel decoder deivce!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     /* register sound device */
@@ -434,7 +438,7 @@ int rt_hw_sound_init(void)
         device = &(snd_dev.audio.parent);
         rt_device_unregister(device);
         LOG_E("sound device init error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     return RT_EOK;

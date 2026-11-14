@@ -9,15 +9,15 @@
  */
 
 #include <rtthread.h>
-#include "spi_flash.h"
-#include "spi_flash_sfud.h"
+#include "dev_spi_flash.h"
+#include "dev_spi_flash_sfud.h"
 #include "drv_spi.h"
 
 #if defined(BSP_USING_SPI_FLASH)
 static int rt_hw_spi_flash_init(void)
 {
     __HAL_RCC_GPIOF_CLK_ENABLE();
-    rt_hw_spi_device_attach("spi5", "spi50", GPIOF, GPIO_PIN_6);
+    rt_hw_spi_device_attach("spi5", "spi50", GET_PIN(F, 6));
 
     if (RT_NULL == rt_sfud_flash_probe("W25Q256", "spi50"))
     {

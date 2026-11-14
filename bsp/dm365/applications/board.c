@@ -27,7 +27,7 @@
     rt_uint8_t _fiq_stack_start[1024];
     rt_uint8_t _undefined_stack_start[512];
     rt_uint8_t _abort_stack_start[512];
-    rt_uint8_t _svc_stack_start[1024] RT_SECTION(".nobss");
+    rt_uint8_t _svc_stack_start[1024] rt_section(".nobss");
     extern unsigned char __bss_start;
     extern unsigned char __bss_end;
 #endif
@@ -190,7 +190,7 @@ void rt_hw_board_init()
 #ifdef RT_USING_COMPONENTS_INIT
     rt_components_board_init();
 #endif
-#ifdef RT_USING_CONSOLE
+#if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
     rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif
 

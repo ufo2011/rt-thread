@@ -12,7 +12,7 @@
 #include <rtthread.h>
 
 #include <board.h>
-#include <serial.h>
+#include <drivers/dev_serial.h>
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 #endif
@@ -28,7 +28,7 @@ rt_uint8_t _irq_stack_start[1024];
 rt_uint8_t _fiq_stack_start[1024];
 rt_uint8_t _undefined_stack_start[512];
 rt_uint8_t _abort_stack_start[512];
-rt_uint8_t _priv_stack_start[4096]; RT_SECTION(".nobss");
+rt_uint8_t _priv_stack_start[4096]; rt_section(".nobss");
 extern unsigned char __bss_start;
 extern unsigned char __bss_end;
 
@@ -64,7 +64,7 @@ void rtthread_startup()
 #ifdef RT_USING_FINSH
     /* init finsh */
     finsh_system_init();
-#ifdef RT_USING_DEVICE
+#if !defined(RT_USING_POSIX_STDIO) && defined(RT_USING_DEVICE)
     finsh_set_device("uart0");
 #endif
 #endif

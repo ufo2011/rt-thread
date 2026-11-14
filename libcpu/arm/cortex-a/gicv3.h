@@ -52,7 +52,7 @@
 
 /** Macro to access the Distributor Control Register (GICD_CTLR)
 */
-#define GICD_CTLR_RWP (1<<31)
+#define GICD_CTLR_RWP      (1u << 31)
 #define GICD_CTLR_E1NWF (1<<7)
 #define GICD_CTLR_DS (1<<6)
 #define GICD_CTLR_ARE_NS (1<<5)
@@ -63,7 +63,7 @@
 
 /** Macro to access the Redistributor Control Register (GICR_CTLR)
 */
-#define GICR_CTLR_UWP (1<<31)
+#define GICR_CTLR_UWP       (1u << 31)
 #define GICR_CTLR_DPG1S (1<<26)
 #define GICR_CTLR_DPG1NS (1<<25)
 #define GICR_CTLR_DPG0 (1<<24)
@@ -151,7 +151,7 @@ rt_uint32_t arm_gic_get_pending_irq(rt_uint32_t index, int irq);
 void arm_gic_set_pending_irq(rt_uint32_t index, int irq);
 void arm_gic_clear_pending_irq(rt_uint32_t index, int irq);
 
-void arm_gic_set_configuration(rt_uint32_t index, int irq, uint32_t config);
+void arm_gic_set_configuration(rt_uint32_t index, int irq, rt_uint32_t config);
 rt_uint32_t arm_gic_get_configuration(rt_uint32_t index, int irq);
 
 void arm_gic_clear_active(rt_uint32_t index, int irq);

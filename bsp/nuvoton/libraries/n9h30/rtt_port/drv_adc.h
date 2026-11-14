@@ -15,9 +15,10 @@
 
 #include <rtthread.h>
 #include "nu_adc.h"
-#include "touch.h"
 
-#define TOUCH_MQ_LENGTH 128
+#if defined(BSP_USING_ADC_TOUCH)
+    #include <rtdevice.h>
+#endif
 
 typedef enum
 {
@@ -52,13 +53,11 @@ typedef struct
 
 typedef nu_adc_cb *nu_adc_cb_t;
 
-int32_t nu_adc_read_touch_xyz(uint16_t *bufX, uint16_t *bufY, uint16_t *bufZ0, uint16_t *bufZ1, int32_t dataCnt);
-rt_err_t nu_adc_touch_enable(rt_touch_t psRtTouch);
-rt_err_t nu_adc_touch_disable(void);
-void nu_adc_touch_detect(rt_bool_t bStartDetect);
-void nu_adc_touch_start_conv(void);
-
-void nu_adc_touch_update_caldata(int *psi32NewValue);
-void nu_adc_touch_reset_caldata(int *psi32NewValue);
+#if defined(BSP_USING_ADC_TOUCH)
+    void nu_adc_touch_detect(rt_bool_t bStartDetect);
+    int32_t nu_adc_touch_read_xyz(uint32_t *bufX, uint32_t *bufY, uint32_t *bufZ0, uint32_t *bufZ1, int32_t dataCnt);
+    rt_err_t nu_adc_touch_enable(rt_touch_t psRtTouch);
+    rt_err_t nu_adc_touch_disable(void);
+#endif
 
 #endif /* __DRV_ADC_H__ */

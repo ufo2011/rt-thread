@@ -143,7 +143,7 @@ static void _thread_inited_hook(rt_thread_t thread)
     if ((stk_start + stack_size) >= TASK_STACK_USING_MEM_UPPER_RANGE)
     {
         rt_kprintf("thread[%s] stack only between 0x%08x and 0x%08x, please use rt_create_thread()!!\n",
-                   thread->name, TASK_STACK_USING_MEM_LOWER_RANGE, TASK_STACK_USING_MEM_UPPER_RANGE);
+                   thread->parent.name, TASK_STACK_USING_MEM_LOWER_RANGE, TASK_STACK_USING_MEM_UPPER_RANGE);
     }
     RT_ASSERT((stk_start + stack_size) < TASK_STACK_USING_MEM_UPPER_RANGE);
 }
@@ -193,7 +193,7 @@ void rt_hw_board_init(void)
     rt_components_board_init();
 #endif
 
-#ifdef RT_USING_CONSOLE
+#if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
     rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif
 
@@ -203,15 +203,10 @@ void rt_hw_board_init(void)
 
     NVIC_SystemLPConfig(NVIC_LP_SLEEPDEEP, ENABLE);
     rt_thread_idle_sethook(_idle_hook_callback);
-    rt_thread_inited_sethook(_thread_inited_hook);
+    RT_OBJECT_HOOKLIST_DECLARE(_thread_inited_hook,_thread_inited_hook);
 }
 
 #include <wm_watchdog.h>
-void rt_hw_cpu_reset(void)
-{
-    extern void tls_sys_reset(void);
-    tls_sys_reset();
-}
 
 /**
  * The time delay function.
@@ -253,7 +248,8 @@ void rt_hw_us_delay(rt_uint32_t us)
 #include <finsh.h>
 static void reboot(uint8_t argc, char **argv)
 {
-    rt_hw_cpu_reset();
+    extern void tls_sys_reset(void);
+    tls_sys_reset();
 }
 MSH_CMD_EXPORT(reboot, Reboot System);
 #endif /* RT_USING_FINSH */

@@ -11,6 +11,7 @@
 #include <rtthread.h>
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "board.h"
 #include "uart_console.h"
@@ -22,7 +23,7 @@
 rt_uint8_t *rt_hw_sram_init(void)
 {
     rt_uint8_t *heap;
-    heap = malloc(RT_HEAP_SIZE);
+    heap = (rt_uint8_t *)malloc(RT_HEAP_SIZE);
     if (heap == RT_NULL)
     {
         rt_kprintf("there is no memory in pc.");
@@ -83,8 +84,7 @@ void rt_hw_exit(void)
 
 #if defined(RT_USING_FINSH)
 #include <finsh.h>
-FINSH_FUNCTION_EXPORT_ALIAS(rt_hw_exit, exit, exit rt - thread);
-FINSH_FUNCTION_EXPORT_ALIAS(rt_hw_exit, __cmd_quit, exit rt-thread);
+MSH_CMD_EXPORT_ALIAS(rt_hw_exit, quit, exit rt-thread);
 #endif /* RT_USING_FINSH */
 
 /**
@@ -93,7 +93,7 @@ FINSH_FUNCTION_EXPORT_ALIAS(rt_hw_exit, __cmd_quit, exit rt-thread);
 int rt_hw_board_init(void)
 {
     /* init system memory */
-    rt_hw_sram_init();
+    RT_UNUSED(rt_hw_sram_init());
 
     uart_console_init();
 
@@ -101,7 +101,7 @@ int rt_hw_board_init(void)
     rt_thread_idle_sethook(rt_hw_win32_low_cpu);
 #endif
 
-#if defined(RT_USING_CONSOLE)
+#if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
     rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif
     /* init board */
@@ -110,4 +110,5 @@ int rt_hw_board_init(void)
 #endif
     return 0;
 }
+
 /*@}*/

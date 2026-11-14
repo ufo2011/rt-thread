@@ -55,7 +55,7 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device, struct rt_spi
     static void nu_pdma_spi_rx_cb(void *pvUserData, uint32_t u32EventFilter);
     static rt_err_t nu_pdma_spi_rx_config(struct nu_spi *spi_bus, uint8_t *pu8Buf, int32_t i32RcvLen, uint8_t bytes_per_word);
     static rt_err_t nu_pdma_spi_tx_config(struct nu_spi *spi_bus, const uint8_t *pu8Buf, int32_t i32SndLen, uint8_t bytes_per_word);
-    static rt_size_t nu_spi_pdma_transmit(struct nu_spi *spi_bus, const uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word);
+    static rt_ssize_t nu_spi_pdma_transmit(struct nu_spi *spi_bus, const uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word);
 #endif
 /* Public functions -------------------------------------------------------------*/
 void nu_spi_transfer(struct nu_spi *spi_bus, uint8_t *tx, uint8_t *rx, int length, uint8_t bytes_per_word);
@@ -96,11 +96,13 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device,
     uint32_t u32SPIMode;
     uint32_t u32BusClock;
     rt_err_t ret = RT_EOK;
+    void *pvUserData;
 
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(configuration != RT_NULL);
 
     spi_bus = (struct nu_spi *) device->bus;
+    pvUserData = device->parent.user_data;
 
     /* Check mode */
     switch (configuration->mode & RT_SPI_MODE_3)
@@ -118,7 +120,7 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device,
         u32SPIMode = SPI_MODE_3;
         break;
     default:
-        ret = RT_EIO;
+        ret = -RT_EIO;
         goto exit_nu_spi_bus_configure;
     }
 
@@ -128,7 +130,7 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device,
             configuration->data_width == 24 ||
             configuration->data_width == 32))
     {
-        ret = RT_EINVAL;
+        ret = -RT_EINVAL;
         goto exit_nu_spi_bus_configure;
     }
 
@@ -150,12 +152,29 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device,
         if (configuration->mode & RT_SPI_CS_HIGH)
         {
             /* Set CS pin to LOW */
-            SPI_SET_SS_LOW(spi_bus->spi_base);
+            if (pvUserData != RT_NULL)
+            {
+                // set to LOW */
+                rt_pin_write(*((rt_base_t *)pvUserData), PIN_LOW);
+            }
+            else
+            {
+                SPI_SET_SS_LOW(spi_bus->spi_base);
+            }
         }
         else
         {
             /* Set CS pin to HIGH */
-            SPI_SET_SS_HIGH(spi_bus->spi_base);
+            if (pvUserData != RT_NULL)
+            {
+                // set to HIGH */
+                rt_pin_write(*((rt_base_t *)pvUserData), PIN_HIGH);
+            }
+            else
+            {
+                /* Set CS pin to HIGH */
+                SPI_SET_SS_HIGH(spi_bus->spi_base);
+            }
         }
 
         if (configuration->mode & RT_SPI_MSB)
@@ -281,7 +300,7 @@ exit_nu_pdma_spi_tx_config:
 /**
  * SPI PDMA transfer
  */
-static rt_size_t nu_spi_pdma_transmit(struct nu_spi *spi_bus, const uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word)
+static rt_ssize_t nu_spi_pdma_transmit(struct nu_spi *spi_bus, const uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word)
 {
     rt_err_t result = RT_EOK;
     rt_uint32_t u32Offset = 0;
@@ -514,6 +533,7 @@ static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_m
     struct nu_spi *spi_bus;
     struct rt_spi_configuration *configuration;
     uint8_t bytes_per_word;
+    void *pvUserData;
 
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(device->bus != RT_NULL);
@@ -522,6 +542,7 @@ static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_m
     spi_bus = (struct nu_spi *) device->bus;
     configuration = (struct rt_spi_configuration *)&spi_bus->configuration;
     bytes_per_word = configuration->data_width / 8;
+    pvUserData = device->parent.user_data;
 
     if ((message->length % bytes_per_word) != 0)
     {
@@ -534,13 +555,29 @@ static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_m
     {
         if (message->cs_take && !(configuration->mode & RT_SPI_NO_CS))
         {
-            if (configuration->mode & RT_SPI_CS_HIGH)
+            if (pvUserData != RT_NULL)
             {
-                SPI_SET_SS_HIGH(spi_bus->spi_base);
+                if (configuration->mode & RT_SPI_CS_HIGH)
+                {
+                    // set to HIGH */
+                    rt_pin_write(*((rt_base_t *)pvUserData), PIN_HIGH);
+                }
+                else
+                {
+                    // set to LOW */
+                    rt_pin_write(*((rt_base_t *)pvUserData), PIN_LOW);
+                }
             }
             else
             {
-                SPI_SET_SS_LOW(spi_bus->spi_base);
+                if (configuration->mode & RT_SPI_CS_HIGH)
+                {
+                    SPI_SET_SS_HIGH(spi_bus->spi_base);
+                }
+                else
+                {
+                    SPI_SET_SS_LOW(spi_bus->spi_base);
+                }
             }
         }
 
@@ -548,13 +585,29 @@ static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_m
 
         if (message->cs_release && !(configuration->mode & RT_SPI_NO_CS))
         {
-            if (configuration->mode & RT_SPI_CS_HIGH)
+            if (pvUserData != RT_NULL)
             {
-                SPI_SET_SS_LOW(spi_bus->spi_base);
+                if (configuration->mode & RT_SPI_CS_HIGH)
+                {
+                    // set to LOW */
+                    rt_pin_write(*((rt_base_t *)pvUserData), PIN_LOW);
+                }
+                else
+                {
+                    // set to HIGH */
+                    rt_pin_write(*((rt_base_t *)pvUserData), PIN_HIGH);
+                }
             }
             else
             {
-                SPI_SET_SS_HIGH(spi_bus->spi_base);
+                if (configuration->mode & RT_SPI_CS_HIGH)
+                {
+                    SPI_SET_SS_LOW(spi_bus->spi_base);
+                }
+                else
+                {
+                    SPI_SET_SS_HIGH(spi_bus->spi_base);
+                }
             }
         }
 

@@ -10,7 +10,11 @@
  */
 
 #include <rtthread.h>
-#include <dfs_posix.h>
+#include <dfs_file.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
 
 #define TEST_DATA_LEN     120
 
@@ -162,5 +166,5 @@ static void cmd_readwrite(int argc, char *argv[])
     }
     readwrite(filename);
 }
-FINSH_FUNCTION_EXPORT_ALIAS(cmd_readwrite, __cmd_readwrite, perform file read and write test);
+MSH_CMD_EXPORT_ALIAS(cmd_readwrite, readwrite, perform file read and write test);
 #endif /* RT_USING_FINSH */

@@ -22,7 +22,7 @@
 /**
  * This function will initial.
  */
-RT_WEAK void rt_hw_board_init(void)
+rt_weak void rt_hw_board_init(void)
 {
     /* Init System/modules clock */
     nutool_modclkcfg_init();
@@ -56,7 +56,7 @@ RT_WEAK void rt_hw_board_init(void)
     rt_hw_uart_init();
 #endif
 
-#ifdef RT_USING_CONSOLE
+#if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
     rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif
 
@@ -117,16 +117,12 @@ void SysTick_Handler(void)
     rt_interrupt_leave();
 }
 
-void rt_hw_cpu_reset(void)
+int reboot(int argc, char **argv)
 {
     SYS_UnlockReg();
 
     SYS->IPRST0 |= SYS_IPRST0_CHIPRST_Msk;
-}
 
-int reboot(int argc, char **argv)
-{
-    rt_hw_cpu_reset();
     return 0;
 }
 MSH_CMD_EXPORT(reboot, Reboot System);

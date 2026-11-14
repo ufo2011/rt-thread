@@ -23,11 +23,13 @@ void rt_init_thread_entry(void *parameter)
 #ifdef RT_USING_FINSH
     /* initialize finsh */
     finsh_system_init();
+#if !defined(RT_USING_POSIX_STDIO) && defined(RT_USING_DEVICE)
     finsh_set_device(RT_CONSOLE_DEVICE_NAME);
+#endif
 #endif
 }
 /*the led thread*/
-ALIGN(RT_ALIGN_SIZE)
+rt_align(RT_ALIGN_SIZE)
 static rt_uint8_t led_stack[ 512 ];
 static struct rt_thread led_thread;
 static void led_thread_entry(void *parameter)

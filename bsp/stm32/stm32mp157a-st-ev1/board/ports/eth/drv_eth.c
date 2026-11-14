@@ -30,6 +30,15 @@ rt_base_t level;
 #define TX_DMA_ADD_BASE     0x2FFC7000
 #define RX_DMA_ADD_BASE     0x2FFC7100
 
+#undef PHY_FULL_DUPLEX
+#undef PHY_HALF_DUPLEX
+#define PHY_LINK        (1 << 0)
+#define PHY_10M         (1 << 1)
+#define PHY_100M        (1 << 2)
+#define PHY_1000M       (1 << 3)
+#define PHY_FULL_DUPLEX (1 << 4)
+#define PHY_HALF_DUPLEX (1 << 5)
+
 #if defined(__ICCARM__)
 /* transmit buffer */
 #pragma location = TX_ADD_BASE
@@ -44,7 +53,7 @@ __no_init static TxDmaDesc txDmaDesc[ETH_TXBUFNB];
 #pragma location = RX_DMA_ADD_BASE
 __no_init static RxDmaDesc rxDmaDesc[ETH_RXBUFNB];
 
-#elif defined(__CC_ARM) || defined(__CLANG_ARM)
+#elif defined(__ARMCC_VERSION)
 /* transmit buffer */
 static rt_uint8_t txBuffer[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __attribute__((at(TX_ADD_BASE)));
 /* Receive buffer */
@@ -143,7 +152,7 @@ static rt_err_t phy_write_reg(uint8_t phy_addr, uint8_t reg_addr, uint16_t reg_v
         if((rt_tick_get() - tickstart) > ETH_TIME_OUT)
         {
             LOG_E("PHY write reg %02x date %04x timeout!", reg_addr, reg_value);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
     }
 
@@ -175,7 +184,7 @@ static uint16_t phy_read_reg(uint8_t phy_addr, uint8_t reg_addr)
         if((rt_tick_get() - tickstart) > ETH_TIME_OUT)
         {
             LOG_E("PHY read reg %02x timeout!", reg_addr);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
     }
 
@@ -341,7 +350,7 @@ static rt_err_t rt_stm32_eth_init(rt_device_t dev)
         if(((HAL_GetTick() - tickstart ) > ETH_TIME_OUT))
         {
             LOG_E("ETH software reset timeout!");
-            return RT_ERROR;
+            return -RT_ERROR;
         }
     }
 
@@ -459,7 +468,7 @@ static rt_err_t rt_stm32_eth_init(rt_device_t dev)
         if((rt_tick_get() - tickstart) > ETH_TIME_OUT)
         {
             LOG_E("PHY software reset timeout!");
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
         else
         {
@@ -485,14 +494,14 @@ static rt_err_t rt_stm32_eth_close(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_size_t rt_stm32_eth_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+static rt_ssize_t rt_stm32_eth_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     LOG_D("emac read");
     rt_set_errno(-RT_ENOSYS);
     return 0;
 }
 
-static rt_size_t rt_stm32_eth_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
+static rt_ssize_t rt_stm32_eth_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     LOG_D("emac write");
     rt_set_errno(-RT_ENOSYS);

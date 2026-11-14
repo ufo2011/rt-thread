@@ -45,10 +45,14 @@ static rt_err_t rtlink_dev_tx_done(rt_device_t dev, void *buffer)
     return RT_EOK;
 }
 
-#ifdef RT_USING_POSIX
-#include <dfs_posix.h>
-#include <dfs_poll.h>
-#include <dfs_select.h>
+#ifdef RT_USING_POSIX_DEVIO
+#include <dfs_file.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
+#include <poll.h>
+#include <sys/select.h>
 
 #define RTLINK01_PATH "/dev/rtlink01"
 int fd  = -1;
@@ -205,7 +209,7 @@ static void rtlink_fselect()
     }
 }
 MSH_CMD_EXPORT(rtlink_fselect, rtlink posix interface example);
-#endif  /* RT_USING_POSIX */
+#endif  /* RT_USING_POSIX_DEVIO */
 
 static void rtlink_dread(void)
 {
@@ -307,18 +311,18 @@ void create_thead_to_test_speed(rt_uint8_t mutil_num)
     }
 }
 
-static void rtlink_dwrite(int argc, char *argv[])
+static rt_err_t rtlink_dwrite(int argc, char *argv[])
 {
     char *data = RT_NULL;
     rt_size_t length = 0;
     rt_uint16_t count = 0;
-    rt_size_t ret = RT_ERROR;
+    rt_size_t ret = -RT_ERROR;
 
     rt_device_t dev = rt_device_find(RTLINK01);
     if (dev == RT_NULL)
     {
         LOG_E("device not find!");
-        return ;
+        return ret;
     }
 
     if (argc == 1)
@@ -348,6 +352,7 @@ static void rtlink_dwrite(int argc, char *argv[])
             LOG_E("Invalid parameter.");
         }
     }
+    return ret;
 }
 MSH_CMD_EXPORT(rtlink_dwrite, rtlink device interface example);
 

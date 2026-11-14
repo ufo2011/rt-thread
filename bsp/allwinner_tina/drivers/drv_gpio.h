@@ -10,6 +10,8 @@
 #ifndef __DRV_GPIO_H__
 #define __DRV_GPIO_H__
 
+#include <rtdef.h>
+
 /* IO default function */
 #define IO_INPUT         (0x00)
 #define IO_OUTPUT        (0x01)
@@ -212,7 +214,7 @@ typedef struct tina_gpio *tina_gpio_t;
 
 #define GPIO ((tina_gpio_t)GPIO_BASE_ADDR)
 
-int gpio_set_func(enum gpio_port port, enum gpio_pin pin, rt_uint8_t func);
+rt_err_t gpio_set_func(enum gpio_port port, enum gpio_pin pin, rt_uint8_t func);
 int gpio_set_value(enum gpio_port port, enum gpio_pin pin, rt_uint8_t value);
 int gpio_get_value(enum gpio_port port, enum gpio_pin pin);
 int gpio_set_pull_mode(enum gpio_port port,  enum gpio_pin pin, enum gpio_pull pull);

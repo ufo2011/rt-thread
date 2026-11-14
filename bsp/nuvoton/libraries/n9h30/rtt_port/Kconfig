@@ -4,6 +4,7 @@ config SOC_SERIES_N9H30
     select SOC_FAMILY_NUMICRO
     select RT_USING_COMPONENTS_INIT
     select RT_USING_USER_MAIN
+    select PKG_USING_NUVOTON_SERIES_DRIVER
     default y
 
     config BSP_USE_STDDRIVER_SOURCE
@@ -12,6 +13,7 @@ config SOC_SERIES_N9H30
 
     config BSP_USING_MMU
         bool "Enable MMU"
+        select ARCH_ARM_MMU
         default y
 
     config BSP_USING_GPIO
@@ -86,12 +88,12 @@ config SOC_SERIES_N9H30
             depends on BSP_USING_ETMR
 
         if BSP_USING_ETMR0
-            choice
+            choice BSP_ETIMER0_SEL
                 prompt "Select ETIMER0 function mode"
 
                 config BSP_USING_ETIMER0
                     select BSP_USING_ETIMER
-                    select RT_USING_HWTIMER
+                    select RT_USING_CLOCK_TIME
                     bool "ETIMER"
                 help
                     Choose this option if you need TIMER function mode.
@@ -111,12 +113,12 @@ config SOC_SERIES_N9H30
             depends on BSP_USING_ETMR
 
         if BSP_USING_ETMR1
-            choice
+            choice BSP_ETIMER1_SEL
                 prompt "Select ETIMER1 function mode"
 
                 config BSP_USING_ETIMER1
                     select BSP_USING_ETIMER
-                    select RT_USING_HWTIMER
+                    select RT_USING_CLOCK_TIME
                     bool "ETIMER"
                     help
                     Choose this option if you need TIMER function mode.
@@ -135,12 +137,12 @@ config SOC_SERIES_N9H30
             depends on BSP_USING_ETMR
 
          if BSP_USING_ETMR2
-            choice
+            choice BSP_ETIMER2_SEL
                 prompt "Select ETIMER2 function mode"
 
                 config BSP_USING_ETIMER2
                     select BSP_USING_ETIMER
-                    select RT_USING_HWTIMER
+                    select RT_USING_CLOCK_TIME
                     bool "ETIMER"
                 help
                     Choose this option if you need TIMER function mode.
@@ -159,12 +161,12 @@ config SOC_SERIES_N9H30
             depends on BSP_USING_ETMR
 
          if BSP_USING_ETMR3
-            choice
+            choice BSP_ETIMER3_SEL
                 prompt "Select ETIMER3 function mode"
 
                 config BSP_USING_ETIMER3
                     select BSP_USING_ETIMER
-                    select RT_USING_HWTIMER
+                    select RT_USING_CLOCK_TIME
                     bool "ETIMER"
                 help
                     Choose this option if you need TIMER function mode.
@@ -180,6 +182,11 @@ config SOC_SERIES_N9H30
 
     endif
 
+    config BSP_USING_FMINAND
+        bool "Enable FMI NAND Controller"
+        select RT_USING_MTD_NAND
+        default y
+
     menuconfig BSP_USING_TMR
         bool "Enable Timer Controller(TIMER)"
 
@@ -190,28 +197,28 @@ config SOC_SERIES_N9H30
 
         config BSP_USING_TIMER0
             select BSP_USING_TIMER
-            select RT_USING_HWTIMER
+            select RT_USING_CLOCK_TIME
             bool "TIMER0"
             help
                 Choose this option if you need TIMER function mode.
 
         config BSP_USING_TIMER1
             select BSP_USING_TIMER
-            select RT_USING_HWTIMER
+            select RT_USING_CLOCK_TIME
             bool "TIMER1"
             help
                 Choose this option if you need TIMER function mode.
 
         config BSP_USING_TIMER2
             select BSP_USING_TIMER
-            select RT_USING_HWTIMER
+            select RT_USING_CLOCK_TIME
             bool "TIMER2"
             help
                 Choose this option if you need TIMER function mode.
 
         config BSP_USING_TIMER3
             select BSP_USING_TIMER
-            select RT_USING_HWTIMER
+            select RT_USING_CLOCK_TIME
             bool "TIMER3"
             help
                 Choose this option if you need TIMER function mode.
@@ -273,13 +280,18 @@ config SOC_SERIES_N9H30
     menuconfig BSP_USING_SDH
         bool "Enable Secure Digital Host Controller(SDH)"
         select RT_USING_DFS
+        select DFS_USING_POSIX
 
         if BSP_USING_SDH
+
+            config BSP_USING_EMMC
+                bool "Enable FMI_EMMC"
+
             config BSP_USING_SDH0
-                bool "Enable SDH0"
+                bool "Enable SDH_PORT0"
 
             config BSP_USING_SDH1
-                bool "Enable SDH1"
+                bool "Enable SDH_PORT1"
 
             config NU_SDH_HOTPLUG
                 bool "Using HOTPLUG"
@@ -319,7 +331,7 @@ config SOC_SERIES_N9H30
        select RT_USING_SPI
 
        if BSP_USING_QSPI
-            choice
+            choice BSP_QSPI0_SEL
                 prompt "Select QSPI0 function mode"
                 config BSP_USING_QSPI0_NONE
                 bool "NONE"
@@ -332,7 +344,7 @@ config SOC_SERIES_N9H30
                     Choose this option if you need QSPI function mode.
             endchoice
 
-            choice
+            choice BSP_QSPI1_SEL
                 prompt "Select QSPI1 function mode"
                 config BSP_USING_QSPI1_NONE
                 bool "NONE"
@@ -402,46 +414,37 @@ config SOC_SERIES_N9H30
         endif
 
     menuconfig BSP_USING_SOFT_I2C
-        bool "Enable SOFT I2C"
-
+        bool "Enable software I2C (swi2c)"
+        default n
+        select RT_USING_I2C
+        select RT_USING_SOFT_I2C
         if BSP_USING_SOFT_I2C
-            config BSP_USING_SOFT_I2C0
-            bool "Enable SOFT I2C0"
-            select RT_USING_I2C
-            select RT_USING_I2C_BITOPS
+        menuconfig BSP_USING_SOFT_I2C0
+            bool "Enable software I2C0 Bus (swi2c0)"
             default n
-
+            select RT_USING_SOFT_I2C0
             if BSP_USING_SOFT_I2C0
-                config BSP_SOFT_I2C0_SCL_PIN
-                hex "Specify the pin index of SCL of SOFT I2C0"
-                range 0 0x7F
-                default 0x18
-
-                config BSP_SOFT_I2C0_SDA_PIN
-                hex "Specify the pin index of SDA of SOFT I2C0"
-                range 0 0x7F
-                default 0x17
+                config RT_SOFT_I2C0_SCL_PIN
+                    int "swi2c0 SCL pin number"
+                    default 0x18
+                config RT_SOFT_I2C0_SDA_PIN
+                    int "swi2c0 SDA pin number"
+                    default 0x17
             endif
 
-            config BSP_USING_SOFT_I2C1
-            bool "Enable SOFT I2C1"
-            select RT_USING_I2C
-            select RT_USING_I2C_BITOPS
+        menuconfig BSP_USING_SOFT_I2C1
+            bool "Enable software I2C1 Bus (swi2c1)"
             default n
-
+            select RT_USING_SOFT_I2C1
             if BSP_USING_SOFT_I2C1
-                config BSP_SOFT_I2C1_SCL_PIN
-                hex "Specify the pin index of SCL of SOFT I2C1"
-                range 0 0x7F
-                default 0x0B
-
-                config BSP_SOFT_I2C1_SDA_PIN
-                hex "Specify the pin index of SDA of SOFT I2C1"
-                range 0 0x7F
-                default 0x0A
+                config RT_SOFT_I2C1_SCL_PIN
+                    int "swi2c1 SCL pin number"
+                    default 0x0B
+                config RT_SOFT_I2C1_SDA_PIN
+                    int "swi2c1 SDA pin number"
+                    default 0x0A
             endif
         endif
-
     config BSP_USING_WDT
         bool "Enable Watchdog Timer(WDT)"
         select RT_USING_WDT
@@ -456,33 +459,57 @@ config SOC_SERIES_N9H30
         default y
 
         if BSP_USING_VPOST
-            choice
+            choice SUPPORTED_LCM_PANEL_SEL
                 prompt "Select Supported LCM panel"
                 default LCM_USING_FW070TFT
                 config LCM_USING_E50A2V1
-                    bool "LCM_E50A2V1(800x480x2)"
+                    bool "LCM_E50A2V1(800x480-RGB565)"
 
                 config LCM_USING_LSA40AT9001
-                    bool "LCM_LSA40AT9001(800x600x2)"
+                    bool "LCM_LSA40AT9001(800x600-RGB565)"
 
                 config LCM_USING_FW070TFT
-                    bool "LCM_FW070TFT(800x480x4)"
+                    bool "LCM_FW070TFT(800x480-RGB888)"
+
+                config LCM_USING_FW043TFT
+                    bool "LCM_FW043TFT(480x272-RGB888)"
+
+                config LCM_USING_FW070TFT_WSVGA
+                    bool "LCM_USING_FW070TFT_WSVGA(1024x600-RGB888)"
 
             endchoice
 
             config VPOST_USING_LCD_IDX
                 int
                 default 0    if LCM_USING_E50A2V1
-
                 default 2    if LCM_USING_LSA40AT9001
                 default 3    if LCM_USING_FW070TFT
+                default 4    if LCM_USING_FW043TFT
+                default 5    if LCM_USING_FW070TFT_WSVGA
 
-           config LCM_USING_BPP
+           config BSP_LCD_BPP
                 int
-                default 2    if LCM_USING_E50A2V1
+                default 16    if LCM_USING_E50A2V1
+                default 16    if LCM_USING_LSA40AT9001
+                default 32    if LCM_USING_FW070TFT
+                default 32    if LCM_USING_FW043TFT
+                default 32    if LCM_USING_FW070TFT_WSVGA
 
-                default 2    if LCM_USING_LSA40AT9001
-                default 4    if LCM_USING_FW070TFT
+           config BSP_LCD_WIDTH
+                int
+                default 800    if LCM_USING_E50A2V1
+                default 800    if LCM_USING_LSA40AT9001
+                default 800    if LCM_USING_FW070TFT
+                default 480    if LCM_USING_FW043TFT
+                default 1024   if LCM_USING_FW070TFT_WSVGA
+
+           config BSP_LCD_HEIGHT
+                int
+                default 480    if LCM_USING_E50A2V1
+                default 600    if LCM_USING_LSA40AT9001
+                default 480    if LCM_USING_FW070TFT
+                default 272    if LCM_USING_FW043TFT
+                default 600    if LCM_USING_FW070TFT_WSVGA
 
            config BSP_USING_VPOST_OSD
                 bool "Enable VPOST OSD layer"
@@ -497,4 +524,30 @@ config SOC_SERIES_N9H30
     config BSP_USING_USBH
         bool "Enable USB Host Controller(USBH)"
         select RT_USING_USB_HOST
+
+
         select RT_USBH_MSTORAGE
+
+    config RT_SOFT_I2C0_HAS_PIN_DEFAULT
+        bool
+        default y if RT_USING_SOFT_I2C0
+
+    config RT_SOFT_I2C0_SCL_PIN_DEFAULT
+        int
+        default 0x18 if RT_USING_SOFT_I2C0
+
+    config RT_SOFT_I2C0_SDA_PIN_DEFAULT
+        int
+        default 0x17 if RT_USING_SOFT_I2C0
+
+    config RT_SOFT_I2C1_HAS_PIN_DEFAULT
+        bool
+        default y if RT_USING_SOFT_I2C1
+
+    config RT_SOFT_I2C1_SCL_PIN_DEFAULT
+        int
+        default 0x0B if RT_USING_SOFT_I2C1
+
+    config RT_SOFT_I2C1_SDA_PIN_DEFAULT
+        int
+        default 0x0A if RT_USING_SOFT_I2C1

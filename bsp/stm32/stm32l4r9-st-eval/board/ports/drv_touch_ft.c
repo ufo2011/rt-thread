@@ -29,7 +29,7 @@
 #define TOUCH_SLAVE_ADDR            0x38U
 #else
 #error "Please define at least one TOUCH DEVICE"
-/* this driver can be disabled at menuconfig → RT-Thread Components → Device Drivers */
+/* this driver can be disabled at menuconfig -> RT-Thread Components -> Device Drivers */
 #endif
 
 static struct rt_i2c_bus_device *ft_i2c_bus;
@@ -117,7 +117,7 @@ static rt_err_t ft_read_point(touch_msg_t msg)
     ret = ft_read(ft_i2c_bus, 0x02, &point_num, 1);
     if (ret < 0)
     {
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     if (point_num == 0)
@@ -129,13 +129,13 @@ static rt_err_t ft_read_point(touch_msg_t msg)
             return RT_EOK;
         }
         msg->event = TOUCH_EVENT_NONE;
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     ret = ft_read(ft_i2c_bus, 0x03, point, 6);
     if (ret < 0)
     {
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     msg->y = (point[0]&0x0F) << 8 | point[1];

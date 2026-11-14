@@ -12,7 +12,7 @@
 
 #include <sep4020.h>
 #include <board.h>
-#include <serial.h>
+#include <drivers/dev_serial.h>
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 #endif
@@ -77,7 +77,7 @@ void rtthread_startup()
 #ifdef RT_USING_FINSH
     /* init finsh */
     finsh_system_init();
-#ifdef RT_USING_DEVICE
+#if !defined(RT_USING_POSIX_STDIO) && defined(RT_USING_DEVICE)
     finsh_set_device("uart0");
 #endif
 #endif

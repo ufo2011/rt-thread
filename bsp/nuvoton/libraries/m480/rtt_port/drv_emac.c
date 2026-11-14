@@ -71,8 +71,8 @@ static rt_err_t nu_emac_init(rt_device_t dev);
 
 static rt_err_t nu_emac_open(rt_device_t dev, rt_uint16_t oflag);
 static rt_err_t nu_emac_close(rt_device_t dev);
-static rt_size_t nu_emac_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size);
-static rt_size_t nu_emac_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size);
+static rt_ssize_t nu_emac_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size);
+static rt_ssize_t nu_emac_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size);
 static rt_err_t nu_emac_control(rt_device_t dev, int cmd, void *args);
 static rt_err_t nu_emac_tx(rt_device_t dev, struct pbuf *p);
 static struct pbuf *nu_emac_rx(rt_device_t dev);
@@ -124,7 +124,7 @@ static void *nu_emac_memcpy(void *dest, void *src, unsigned int count)
     if (count >= NU_EMAC_PDMA_MEMCOPY_THRESHOLD)
         return nu_pdma_memcpy(dest, src, count);
 #endif
-    return memcpy(dest, src, count);
+    return rt_memcpy(dest, src, count);
 }
 
 static void nu_emac_reinit(void)
@@ -281,13 +281,13 @@ static rt_err_t nu_emac_close(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_size_t nu_emac_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+static rt_ssize_t nu_emac_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     rt_set_errno(-RT_ENOSYS);
     return 0;
 }
 
-static rt_size_t nu_emac_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
+static rt_ssize_t nu_emac_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     rt_set_errno(-RT_ENOSYS);
     return 0;
@@ -357,7 +357,7 @@ static rt_err_t nu_emac_tx(rt_device_t dev, struct pbuf *p)
 #endif
 
     /* Return SUCCESS */
-    return (EMAC_SendPktWoCopy(offset) == 1) ? RT_EOK : RT_ERROR;
+    return (EMAC_SendPktWoCopy(offset) == 1) ? RT_EOK : -RT_ERROR;
 }
 
 static struct pbuf *nu_emac_rx(rt_device_t dev)

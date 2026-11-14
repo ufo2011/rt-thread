@@ -1,5 +1,5 @@
 ;/*
-; * Copyright (c) 2006-2018, RT-Thread Development Team
+; * Copyright (c) 2006-2022, RT-Thread Development Team
 ; *
 ; * SPDX-License-Identifier: Apache-2.0
 ; *
@@ -46,8 +46,8 @@ rt_hw_interrupt_disable    PROC
 ; */
 rt_hw_interrupt_enable    PROC
     EXPORT  rt_hw_interrupt_enable
-    MSR		PRIMASK, r0
-    BX		LR
+    MSR     PRIMASK, r0
+    BX      LR
     ENDP
 
 ;/*
@@ -183,11 +183,18 @@ rt_hw_context_switch_to    PROC
     ; restore MSP
     LDR     r0, =SCB_VTOR
     LDR     r0, [r0]
+    CMP     r0, #0
+    BEQ     _restore_msp_done
     LDR     r0, [r0]
     MSR     msp, r0
+_restore_msp_done
 
     ; enable interrupts at processor level
     CPSIE   I
+
+    ; ensure PendSV exception taken place before subsequent operation
+    DSB
+    ISB
 
     ; never reach here!
     ENDP
@@ -204,7 +211,13 @@ HardFault_Handler    PROC
     EXPORT HardFault_Handler
 
     ; get current context
-    MRS     r0, psp                 ; get fault thread stack pointer
+    MRS     r0, msp                 ; get fault context from handler.
+    MOV     r1, lr                  ; Cortex-M0 has no Thumb-2 TST immediate
+    MOVS    r2, #0x04
+    TST     r1, r2                  ; if(!EXC_RETURN[2])
+    BEQ     _get_sp_done
+    MRS     r0, psp                 ; get fault context from thread.
+_get_sp_done
     PUSH    {lr}
     BL      rt_hw_hard_fault_exception
     POP     {pc}

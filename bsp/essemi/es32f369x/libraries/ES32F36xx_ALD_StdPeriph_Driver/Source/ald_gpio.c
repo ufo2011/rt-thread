@@ -13,6 +13,9 @@
   * @date    07 Nov 2019
   * @author  AE Team
   * @note
+  *          Change Logs:
+  *          Date            Author          Notes
+  *          07 Nov 2019     AE Team         The first version
   *
   * Copyright (C) Shanghai Eastsoft Microelectronics Co. Ltd. All rights reserved.
   *
@@ -29,8 +32,7 @@
   * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
-  *
-  *********************************************************************************
+  **********************************************************************************
   * @verbatim
   ==============================================================================
                     ##### GPIO Peripheral features #####
@@ -139,8 +141,6 @@
   */
 
 #include "ald_conf.h"
-#include "ald_gpio.h"
-
 
 /** @addtogroup ES32FXXX_ALD
   * @{
@@ -199,7 +199,7 @@ void ald_gpio_init(GPIO_TypeDef *GPIOx, uint16_t pin, gpio_init_t *init)
 	for (i = 0; i < 16; ++i) {
 		if (((pin >> i) & 0x1) == 0)
 			continue;
-        
+
 		/* Get position and 2-bits mask */
 		pos  = i << 1;
 		mask = 0x3 << pos;
@@ -415,9 +415,9 @@ void ald_gpio_write_pin(GPIO_TypeDef *GPIOx, uint16_t pin, uint8_t val)
 	assert_param(IS_GPIO_PIN(pin));
 
 	if ((val & (0x01)) == 0x00)
-		CLEAR_BIT(GPIOx->DOUT, pin);
+		GPIOx->BSRR = pin << 16U;
 	else
-		SET_BIT(GPIOx->DOUT, pin);
+		GPIOx->BSRR = pin;
 
 	return;
 }

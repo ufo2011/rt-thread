@@ -58,15 +58,27 @@ export PATH=~/Software/Nuclei/gcc/bin:~/Software/Nuclei/openocd/bin:$PATH
 
 ### 编译程序
 
-下载好[RT-Thread](https://github.com/RT-Thread/rt-thread)的代码和[ENV工具](https://www.rt-thread.org/document/site/tutorial/env-video/)以后。
+下载好[RT-Thread](https://github.com/RT-Thread/rt-thread)的代码和[ENV工具](https://www.rt-thread.org/download.html#download-rt-thread-env-tool)以后。
 
 按照ENV工具的教程, 在**rt-thread\bsp\nuclei\gd32vf103_rvstar**目录打开ENV工具命令行。
 
 **注意**: 请确保Nuclei GCC和Nuclei OpenOCD的路径设置正确无误。
 
-1. 运行 ``pkgs --update``来下载最新的依赖的**Nuclei SDK**开发包
+1. 运行 ``pkgs --update``来下载最新的依赖的**Nuclei SDK**开发包,修改链接脚本。
+
+   ```c
+     .stack ORIGIN(RAM) + LENGTH(RAM) - __TOT_STACK_SIZE (NOLOAD) :
+     {
+   	...
+       PROVIDE( _sp = . );
+       PROVIDE( __rt_rvstack = . );//在链接脚本中补充该条语句
+     } >RAM AT>RAM
+   ```
+
 2. **可选**: 运行 ``menuconfig``来进行内核配置
+
 3. 运行 ``scons -c``清理之前的编译结果
+
 4. 运行 ``scons``来进行代码的编译
 
 ### 下载程序
@@ -244,7 +256,7 @@ Breakpoint 1, irq_entry () at D:\workspace\Sourcecode\rt-thread\libcpu\risc-v\nu
 | GPIO    | 支持     |      默认使能，支持中断控制      |
 | SPI     | 支持     |             默认关闭             |
 | I2C     | 支持     |             默认关闭             |
-| HWTIMER | 支持     |             默认关闭             |
+| CLOCK_TIMER | 支持     |             默认关闭             |
 | PWM     | 支持     |             默认关闭             |
 | WDT     | 支持     |             默认关闭             |
 | RTC     | 支持     |             默认关闭             |
@@ -288,7 +300,7 @@ gpio_init(GPIOA, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, GPIO_PIN_6);
 - 适配RT-Thread的驱动框架的代码在 [../libraries/gd32vf103/HAL_Drivers](../libraries/gd32vf103/HAL_Drivers)目录下。
 - 如果有开发者想适配更多的驱动, 请在对应目录下增加驱动适配支持。
 - GD32VF103的驱动适配开关在 `menuconfig -> Hardware Drivers Config -> On-chip Peripheral Drivers` 可以找到。
-- HWTIMER和PWM都是采用的TIMER模块进行功能实现，所以在使用驱动时，请务必注意不要重叠使用相同模块。
+- CLOCK_TIMER和PWM都是采用的TIMER模块进行功能实现，所以在使用驱动时，请务必注意不要重叠使用相同模块。
 
 ## 联系人信息
 

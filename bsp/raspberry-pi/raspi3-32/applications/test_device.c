@@ -13,8 +13,9 @@
 #include <rtdevice.h>
 #include <rthw.h>
 #include <string.h>
-#include <drivers/hwtimer.h>
-#include "raspi.h"
+#include <drivers/clock_time.h>
+#include <raspi.h>
+#include <sys/time.h>
 
 #ifdef BSP_USING_HDMI
 #include "drv_fb.h"
@@ -236,15 +237,15 @@ static rt_err_t timer_timeout_cb(rt_device_t dev, rt_size_t size)
     return 0;
 }
 #endif
-rt_err_t test_hwtimer(void)
+rt_err_t test_clock_timer(void)
 {
 #ifdef BSP_USING_SYSTIMER
     rt_kprintf("Hello Test HW Timer!\n");
     rt_err_t err;
-    rt_hwtimerval_t val;
+    rt_clock_timerval_t val;
     rt_device_t dev = RT_NULL;
     rt_tick_t tick;
-    rt_hwtimer_mode_t mode;
+    rt_clock_timer_mode_t mode;
     int t = 5;
 
     if ((dev = rt_device_find(TIMER)) == RT_NULL)
@@ -259,8 +260,8 @@ rt_err_t test_hwtimer(void)
         return -1;
     }
 
-    mode = HWTIMER_MODE_PERIOD;
-    err = rt_device_control(dev, HWTIMER_CTRL_MODE_SET, &mode);
+    mode = CLOCK_TIMER_MODE_PERIOD;
+    err = rt_device_control(dev, CLOCK_TIMER_CTRL_MODE_SET, &mode);
 
     tick = rt_tick_get();
     rt_kprintf("Start Timer> Tick: %d\n", tick);
@@ -276,7 +277,7 @@ rt_err_t test_hwtimer(void)
     rt_kprintf("Sleep %d sec\n", t);
     rt_thread_delay(t*RT_TICK_PER_SECOND);
 
-    err = rt_device_control(dev, HWTIMER_CTRL_STOP, RT_NULL);
+    err = rt_device_control(dev, CLOCK_TIMER_CTRL_STOP, RT_NULL);
     rt_kprintf("Timer Stoped\n");
 
     rt_device_read(dev, 0, &val, sizeof(val));
@@ -284,8 +285,8 @@ rt_err_t test_hwtimer(void)
 
     rt_device_set_rx_indicate(dev, timer_timeout_cb);
 
-    mode = HWTIMER_MODE_PERIOD;
-    err = rt_device_control(dev, HWTIMER_CTRL_MODE_SET, &mode);
+    mode = CLOCK_TIMER_MODE_PERIOD;
+    err = rt_device_control(dev, CLOCK_TIMER_CTRL_MODE_SET, &mode);
 
     val.sec = t;
     val.usec = 0;
@@ -307,11 +308,11 @@ EXIT:
 }
 
 #ifdef RT_USING_WDT
-#define WDT_DEVICE_NAME    "wdg"    /* 鐪嬮棬鐙楄澶囧悕绉� */
-static rt_device_t wdg_dev;         /* 鐪嬮棬鐙楄澶囧彞鏌� */
+#define WDT_DEVICE_NAME    "wdg"    /* the name of the watchdog device */
+static rt_device_t wdg_dev;         /* handle of the watchdog device */
 static void idle_hook(void)
 {
-    /* 鍦ㄧ┖闂茬嚎绋嬬殑鍥炶皟鍑芥暟閲屽杺鐙� */
+    /* Feed the dog in the callback function of the idle thread */
     rt_device_control(wdg_dev, RT_DEVICE_CTRL_WDT_KEEPALIVE, NULL);
     //rt_kprintf("feed the dog!\n ");
 }
@@ -320,38 +321,38 @@ rt_err_t test_wdt(void)
 {
     rt_kprintf("Hello Test WDT!\n");
     rt_err_t ret = RT_EOK;
-    rt_uint32_t timeout = 1;        /* 婧㈠嚭鏃堕棿锛屽崟浣嶏細绉� */
+    rt_uint32_t timeout = 1;        /* the overflow time */
     char device_name[RT_NAME_MAX];
     rt_strncpy(device_name, WDT_DEVICE_NAME, RT_NAME_MAX);
-    /* 鏍规嵁璁惧鍚嶇О鏌ユ壘鐪嬮棬鐙楄澶囷紝鑾峰彇璁惧鍙ユ焺 */
+    /* find the watchdog device based on the device's name and obtain the device handle */
     wdg_dev = rt_device_find(device_name);
     if (!wdg_dev)
     {
         rt_kprintf("find %s failed!\n", device_name);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
-    /* 鍒濆鍖栬澶� */
+    /* initialize the device */
     ret = rt_device_init(wdg_dev);
     if (ret != RT_EOK)
     {
         rt_kprintf("initialize %s failed!\n", device_name);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
-    /* 璁剧疆鐪嬮棬鐙楁孩鍑烘椂闂� */
+    /* set the overflow time of the watch dog */
     ret = rt_device_control(wdg_dev, RT_DEVICE_CTRL_WDT_SET_TIMEOUT, &timeout);
     if (ret != RT_EOK)
     {
         rt_kprintf("set %s timeout failed!\n", device_name);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
-    /* 鍚姩鐪嬮棬鐙� */
+    /* start the watchdog */
     ret = rt_device_control(wdg_dev, RT_DEVICE_CTRL_WDT_START, RT_NULL);
     if (ret != RT_EOK)
     {
         rt_kprintf("start %s failed!\n", device_name);
         return -RT_ERROR;
     }
-    /* 璁剧疆绌洪棽绾跨▼鍥炶皟鍑芥暟 */
+    /* set idle thread callback function */
     rt_thread_idle_sethook(idle_hook);
 
     return ret;
@@ -368,7 +369,7 @@ int test_rtc(void)
 {
 #ifdef BSP_USING_RTC
     rt_kprintf("Hello Test RTC!\n");
-    uint8_t i;
+    rt_uint8_t i;
     time_t now;
 
     rt_err_t ret = RT_EOK;
@@ -382,7 +383,7 @@ int test_rtc(void)
     if (ret != RT_EOK)
     {
         rt_kprintf("[RTC Test]Set RTC Date failed\n");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     rt_thread_delay(RT_TICK_PER_SECOND);
@@ -391,7 +392,7 @@ int test_rtc(void)
     if (ret != RT_EOK)
     {
         rt_kprintf("[RTC Test]Set RTC Time failed\n");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     rt_thread_delay(RT_TICK_PER_SECOND);
@@ -435,9 +436,9 @@ void test_device(int argc, char**argv)
         return;
     }
 
-    if (0 == strcmp(argv[1],"hwtimer"))
+    if (0 == strcmp(argv[1],"clock_timer"))
     {
-        test_hwtimer();
+        test_clock_timer();
         return;
     }
 
@@ -457,6 +458,6 @@ void test_device(int argc, char**argv)
         test_hdmi();
         return;
     }
-    rt_kprintf("param err, please entry test_device <smp|gpio|i2c|spi|hwtimer|wdt|rtc|hdmi>\n");
+    rt_kprintf("param err, please entry test_device <smp|gpio|i2c|spi|clock_timer|wdt|rtc|hdmi>\n");
 }
-MSH_CMD_EXPORT(test_device, sample: test_device <smp|gpio|i2c|spi|hwtimer|wdt|rtc>);
+MSH_CMD_EXPORT(test_device, sample: test_device <smp|gpio|i2c|spi|clock_timer|wdt|rtc>);

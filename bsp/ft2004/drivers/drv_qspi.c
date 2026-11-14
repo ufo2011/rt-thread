@@ -62,7 +62,7 @@ static rt_err_t ft2004_cmdOperation(struct ft2004_qspi_bus *qspi_bus_p, struct r
     if (qspi_message->instruction.qspi_lines == 0)
     {
         LOG_E("instruction is not valid");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     cmd_pack.cmd = qspi_message->instruction.content;
@@ -130,13 +130,13 @@ static rt_err_t ft2004_cmdOperation(struct ft2004_qspi_bus *qspi_bus_p, struct r
         }
 #endif
 
-    return (ret == FQSPI_SUCCESS) ? RT_EOK : RT_ERROR;
+    return (ret == FQSPI_SUCCESS) ? RT_EOK : -RT_ERROR;
 }
 
-static rt_uint32_t ft2004_qspi_xfer(struct ft2004_qspi_bus *qspi_bus_p, struct rt_spi_message *message)
+static rt_ssize_t ft2004_qspi_xfer(struct ft2004_qspi_bus *qspi_bus_p, struct rt_spi_message *message)
 {
     struct rt_qspi_message *qspi_message = (struct rt_qspi_message *)message;
-    rt_uint32_t ret_length = 0;
+    rt_ssize_t ret_length = 0;
     const rt_uint8_t *sndb = message->send_buf;
     rt_uint8_t *rcvb = message->recv_buf;
     rt_int32_t length = message->length;
@@ -159,7 +159,7 @@ static rt_uint32_t ft2004_qspi_xfer(struct ft2004_qspi_bus *qspi_bus_p, struct r
     if (qspi_config_p->channel >= FT_QSPI_MAX_CS_NUM)
     {
         LOG_E("invalid channel[%x] ", qspi_config_p->channel);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
     switch (cmd)
     {
@@ -288,7 +288,7 @@ rt_err_t ft2004_qspi_bus_attach_device(const char *bus_name, const char *device_
     if (qspi_device == RT_NULL)
     {
         LOG_E("no memory, qspi bus attach device failed!");
-        result = RT_ENOMEM;
+        result = -RT_ENOMEM;
         goto __exit;
     }
 
@@ -324,7 +324,7 @@ static void cmd05_check(void)
     cmd_pack.cmd = 0x6;
     FQSpi_CmdOperation(&_ft2004_qspi_bus.fqspi, &cmd_pack);
 
-    rt_memset(&cmd_pack, 0, sizeof(&cmd_pack));
+    rt_memset(&cmd_pack, 0, sizeof(cmd_pack));
     cmd_pack.cmd = 0x5;
     cmd_pack.flags = FQSPI_CMD_NEED_GET_MASK;
     cmd_pack.rxBuf = rx_buffer;
@@ -337,11 +337,11 @@ static void cmd05_check(void)
         LOG_I("cnt %d, 0x%x ", i, rx_buffer[i]);
     }
 
-    rt_memset(&cmd_pack, 0, sizeof(&cmd_pack));
+    rt_memset(&cmd_pack, 0, sizeof(cmd_pack));
     cmd_pack.cmd = 0x4;
     FQSpi_CmdOperation(&_ft2004_qspi_bus.fqspi, &cmd_pack);
 
-    rt_memset(&cmd_pack, 0, sizeof(&cmd_pack));
+    rt_memset(&cmd_pack, 0, sizeof(cmd_pack));
     cmd_pack.cmd = 0x5;
     cmd_pack.flags = FQSPI_CMD_NEED_GET_MASK;
     cmd_pack.rxBuf = rx_buffer;
@@ -366,7 +366,7 @@ static void cmd35_check(void)
     cmd_pack.cmd = 0x6;
     FQSpi_CmdOperation(&_ft2004_qspi_bus.fqspi, &cmd_pack);
 
-    rt_memset(&cmd_pack, 0, sizeof(&cmd_pack));
+    rt_memset(&cmd_pack, 0, sizeof(cmd_pack));
     cmd_pack.cmd = 0x5;
     cmd_pack.flags = FQSPI_CMD_NEED_GET_MASK;
     cmd_pack.rxBuf = rx_buffer;
@@ -382,7 +382,7 @@ static void cmd35_check(void)
     cmd_pack.cmd = 0xB7;
     FQSpi_CmdOperation(&_ft2004_qspi_bus.fqspi, &cmd_pack);
 
-    rt_memset(&cmd_pack, 0, sizeof(&cmd_pack));
+    rt_memset(&cmd_pack, 0, sizeof(cmd_pack));
     cmd_pack.cmd = 0x35;
     cmd_pack.flags = FQSPI_CMD_NEED_GET_MASK;
     cmd_pack.rxBuf = rx_buffer;
@@ -406,7 +406,7 @@ static void cmd15_check(void)
     // cmd_pack.cmd = 0xB7;
     // FQSpi_CmdOperation(&_ft2004_qspi_bus.fqspi, &cmd_pack);
 
-    rt_memset(&cmd_pack, 0, sizeof(&cmd_pack));
+    rt_memset(&cmd_pack, 0, sizeof(cmd_pack));
     cmd_pack.cmd = 0x15;
     cmd_pack.flags = FQSPI_CMD_NEED_GET_MASK;
     cmd_pack.rxBuf = rx_buffer;

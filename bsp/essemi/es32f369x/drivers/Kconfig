@@ -1,18 +1,30 @@
 menu "Hardware Drivers Config"
 
-    
+
 
     menu "On-chip Peripheral Drivers"
         config BSP_USING_GPIO
             bool "Enable GPIO"
             select RT_USING_PIN
             default y
-
-    source "drivers/ES/Kconfig"    
+    rsource "ES/Kconfig"
 
     endmenu
 
     menu "Onboard Peripheral Drivers"
+        config BSP_USING_ARDUINO
+            bool "Compatible with Arduino Ecosystem (RTduino)"
+            select PKG_USING_RTDUINO
+            select BSP_USING_GPIO
+            select BSP_USING_UART2
+            select BSP_USING_SPI0
+            select BSP_USING_I2C0
+            select BSP_USING_ADC0
+            select BSP_USING_GP32C4T0_PWM
+            select RTDUINO_USING_WIRE
+            select RTDUINO_USING_SPI
+            imply RTDUINO_USING_SERVO
+            default n
 
         config BSP_USING_SPI_FLASH
             bool "Enable SPI FLASH (W25Q64 spi0)"
@@ -44,9 +56,9 @@ endif
         config BSP_USING_EXAMPLE_ADC_VOL
             bool "BSP_USING_EXAMPLE_ADC_VOL"
             default n
-        
-        config BSP_USING_EXAMPLE_HWTIMER
-            bool "BSP_USING_EXAMPLE_HWTIMER"
+
+        config BSP_USING_EXAMPLE_CLOCK_TIMER
+            bool "BSP_USING_EXAMPLE_CLOCK_TIMER"
             default n
 
         config BSP_USING_EXAMPLE_I2C
@@ -79,6 +91,10 @@ endif
 
         config BSP_USING_EXAMPLE_UART
             bool "BSP_USING_EXAMPLE_UART"
+            default n
+
+        config BSP_USING_EXAMPLE_UART_DMA
+            bool "BSP_USING_EXAMPLE_UART_DMA"
             default n
 
         config BSP_USING_EXAMPLE_CAN

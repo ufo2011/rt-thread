@@ -31,7 +31,7 @@
     rt_uint8_t _fiq_stack_start[1024];
     rt_uint8_t _undefined_stack_start[512];
     rt_uint8_t _abort_stack_start[512];
-    rt_uint8_t _svc_stack_start[4096] RT_SECTION(".nobss");
+    rt_uint8_t _svc_stack_start[4096] rt_section(".nobss");
 #endif
 
 #if defined(__CC_ARM)
@@ -116,14 +116,9 @@ void rt_hw_board_init(void)
 
     rt_components_board_init();
 
-#ifdef RT_USING_CONSOLE
+#if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
     rt_console_set_device("uart0");
 #endif
-
-}
-
-void rt_hw_us_delay(rt_uint32_t us)
-{
 
 }
 

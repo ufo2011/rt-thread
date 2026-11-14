@@ -1,20 +1,17 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
- * Date           Author       		Notes
- * 2020-07-13     Dozingfiretruck   first version
+ * Date           Author            Notes
+ * 2020-07-13     PeakRacing   first version
  */
 
 #ifndef __BOARD_H__
 #define __BOARD_H__
 
-#include <rtthread.h>
 #include <stm32f4xx.h>
-#include "drv_common.h"
-#include "drv_gpio.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +24,7 @@ extern "C" {
 #define STM32_SRAM_SIZE           128
 #define STM32_SRAM_END            (0x20000000 + STM32_SRAM_SIZE * 1024)
 
-#if defined(__CC_ARM) || defined(__CLANG_ARM)
+#if defined(__ARMCC_VERSION)
 extern int Image$$RW_IRAM1$$ZI$$Limit;
 #define HEAP_BEGIN      (&Image$$RW_IRAM1$$ZI$$Limit)
 #elif __ICCARM__

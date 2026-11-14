@@ -20,11 +20,11 @@
 #define DBG_LVL              DBG_INFO
 #include <rtdbg.h>
 
-#define MIC_BUS_NAME    "i2c4"
+#define MIC_BUS_NAME "swi2c4"
 
 /* SYSRAM  */
 #define RX_FIFO_SIZE (4096)
-#if defined(__CC_ARM) || defined(__CLANG_ARM)
+#if defined(__ARMCC_VERSION)
 rt_uint8_t MIC_RX_FIFO[RX_FIFO_SIZE] __attribute__((at(0x2FFC2000)));
 #elif defined(__ICCARM__)
 #pragma location = 0x2FFC2000
@@ -320,7 +320,7 @@ static rt_err_t mic_start(struct rt_audio_device *audio, int stream)
         /* open receive */
         if (HAL_SAI_Receive_DMA(&hsai_BlockB2, mic_dev->rx_fifo, RX_FIFO_SIZE / 2) != HAL_OK)
         {
-            return RT_ERROR;
+            return -RT_ERROR;
         }
         /* supply clk */
         HAL_SAI_Transmit(&hsai_BlockA2, (uint8_t *)&zero_frame[0], 2, 0);
@@ -379,7 +379,7 @@ int rt_hw_mic_init(void)
         device = &(mic_dev.audio.parent);
         rt_device_unregister(device);
         LOG_E("mic device init error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     return RT_EOK;

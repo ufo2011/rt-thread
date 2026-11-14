@@ -42,7 +42,7 @@ struct rt_completion rx_comp;
 /* SYSRAM SDMMC1/2 accesses */
 #define SDIO_BUFF_SIZE       512
 #define SDCARD_ADDR          0x2FFC0000
-#if defined(__CC_ARM) || defined(__CLANG_ARM)
+#if defined(__ARMCC_VERSION)
 __attribute__((at(SDCARD_ADDR))) static rt_uint32_t cache_buf[SDIO_BUFF_SIZE];
 #elif defined ( __GNUC__ )
 static rt_uint32_t cache_buf[SDIO_BUFF_SIZE] __attribute__((section(".SdCardSection")));
@@ -92,7 +92,7 @@ static rt_err_t rt_hw_sd_init(void)
     if (rt_hw_sd_is_detected() != 0x00)
     {
         LOG_E("can't find sd card!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     SDCARD_Handler.Instance = SDMMC1;
@@ -111,19 +111,19 @@ static rt_err_t rt_hw_sd_init(void)
     if (HAL_SD_Init(&SDCARD_Handler) != RT_EOK)
     {
         LOG_E("sd device init error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     if (HAL_SD_ConfigWideBusOperation(&SDCARD_Handler, SDMMC_BUS_WIDE_4B) != RT_EOK)
     {
         LOG_E("sd bus config error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     if (HAL_SD_GetCardInfo(&SDCARD_Handler, &SDCardInfo) != RT_EOK)
     {
         LOG_E("sd get card info error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     rt_thread_mdelay(100);
@@ -131,7 +131,7 @@ static rt_err_t rt_hw_sd_init(void)
     if(HAL_SD_GetCardState(&SDCARD_Handler) != HAL_SD_CARD_TRANSFER)
     {
         LOG_E("sd get card state error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     return RT_EOK;
@@ -203,7 +203,7 @@ static rt_err_t rt_sdcard_close(rt_device_t dev)
   * @retval DRESULT: Operation result
   */
 
-static rt_size_t rt_sdcard_read(rt_device_t dev, rt_off_t sector, void *buffer, rt_size_t count)
+static rt_ssize_t rt_sdcard_read(rt_device_t dev, rt_off_t sector, void *buffer, rt_size_t count)
 {
     RT_ASSERT(dev != RT_NULL);
     struct stm32_sd *sd = (struct stm32_sd *)dev;
@@ -269,7 +269,7 @@ static rt_size_t rt_sdcard_read(rt_device_t dev, rt_off_t sector, void *buffer, 
   * @param  count      Number of SD blocks to write
   * @retval BSP status
   */
-static rt_size_t rt_sdcard_write(rt_device_t dev, rt_off_t sector, const void *buffer, rt_size_t count)
+static rt_ssize_t rt_sdcard_write(rt_device_t dev, rt_off_t sector, const void *buffer, rt_size_t count)
 {
     RT_ASSERT(dev != RT_NULL);
     struct stm32_sd *sd = (struct stm32_sd *)dev;
@@ -357,7 +357,7 @@ int rt_hw_sdcard_init(void)
         rt_hw_sd_deinit();
         LOG_E("sdcard init failed");
 
-        return RT_ERROR;
+        return -RT_ERROR;
     }
     /* register sdcard device */
     sd_device.sdcard.type    = RT_Device_Class_Block;
@@ -394,7 +394,7 @@ int mnt_init(void)
     if (sd_dev == RT_NULL)
     {
         LOG_E("can't find sd deivce name!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     if (dfs_mount("sd_card", "/", "elm", 0, 0) != 0)

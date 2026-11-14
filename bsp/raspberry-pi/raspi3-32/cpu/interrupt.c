@@ -22,7 +22,7 @@
 #ifdef RT_USING_SMP
 #define rt_interrupt_nest rt_cpu_self()->irq_nest
 #else
-extern volatile rt_uint8_t rt_interrupt_nest;
+extern volatile rt_atomic_t rt_interrupt_nest;
 #endif
 
 const unsigned int VECTOR_BASE = 0x00;
@@ -66,7 +66,7 @@ void rt_hw_interrupt_init(void)
     for (index = 0; index < MAX_HANDLERS; index ++)
     {
         isr_table[index].handler = default_isr_handler;
-        isr_table[index].param = NULL;
+        isr_table[index].param = RT_NULL;
 #ifdef RT_USING_INTERRUPT_INFO
         rt_strncpy(isr_table[index].name, "unknown", RT_NAME_MAX);
         isr_table[index].counter = 0;

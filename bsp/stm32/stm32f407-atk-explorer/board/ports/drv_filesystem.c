@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2006-2021, RT-Thread Development Team
+ * Copyright (c) 2006-2026, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
- * Date           Author       Notes
- * 2018-12-13     balanceTWK   add sdcard port file
- * 2021-05-10     Meco Man     fix a bug that cannot use fatfs in the main thread at starting up
- * 2021-07-28     Meco Man     implement romfs as the root filesystem
+ * Date           Author         Notes
+ * 2018-12-13     balanceTWK     add sdcard port file
+ * 2021-05-10     Meco Man       fix a bug that cannot use fatfs in the main thread at starting up
+ * 2021-07-28     Meco Man       implement romfs as the root filesystem
+ * 2026-01-13     LinuxMint-User add sdcard detect before mount in case auto mount failed
  */
 
 #include <rtthread.h>
-
-#ifdef BSP_USING_FS
 #include <dfs_romfs.h>
 #include <dfs_fs.h>
-#include <dfs_posix.h>
+#include <dfs_file.h>
+#include "drv_sdmmc.h"
 
 #if DFS_FILESYSTEMS_MAX < 4
 #error "Please define DFS_FILESYSTEMS_MAX more than 4"
@@ -31,18 +31,31 @@
 #ifdef BSP_USING_SDCARD_FATFS
 static int onboard_sdcard_mount(void)
 {
-    if (dfs_mount("sd0", "/sdcard", "elm", 0, 0) == RT_EOK)
+    rt_device_t device;
+
+    device = rt_device_find("sd0");
+    if (device == NULL)
     {
-        LOG_I("SD card mount to '/sdcard'");
-    }
-    else
-    {
-        LOG_E("SD card mount to '/sdcard' failed!");
+        mmcsd_wait_cd_changed(0);
+        stm32_mmcsd_change();
+        mmcsd_wait_cd_changed(rt_tick_from_millisecond(500));
+        device = rt_device_find("sd0");
     }
 
+    if (device != RT_NULL)
+    {
+        if (dfs_mount("sd0", "/sdcard", "elm", 0, 0) == RT_EOK)
+        {
+            LOG_I("SD card mount to '/sdcard'");
+        }
+        else
+        {
+            LOG_W("SD card mount to '/sdcard' failed!");
+        }
+    }
     return RT_EOK;
 }
-#endif
+#endif /* BSP_USING_SDCARD_FATFS */
 
 #ifdef BSP_USING_SPI_FLASH_LITTLEFS
 #include <fal.h>
@@ -79,7 +92,7 @@ static int onboard_spiflash_mount(void)
 
     return RT_EOK;
 }
-#endif
+#endif /* BSP_USING_SPI_FLASH_LITTLEFS */
 
 static const struct romfs_dirent _romfs_root[] =
 {
@@ -92,7 +105,7 @@ static const struct romfs_dirent _romfs_root[] =
 #endif
 };
 
-const struct romfs_dirent romfs_root =
+static const struct romfs_dirent romfs_root =
 {
     ROMFS_DIRENT_DIR, "/", (rt_uint8_t *)_romfs_root, sizeof(_romfs_root) / sizeof(_romfs_root[0])
 };
@@ -115,4 +128,3 @@ static int filesystem_mount(void)
 }
 INIT_APP_EXPORT(filesystem_mount);
 
-#endif /* BSP_USING_FS */

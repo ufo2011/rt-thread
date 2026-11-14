@@ -13,10 +13,10 @@ if os.getenv('RTT_CC'):
 
 if  CROSS_TOOL == 'gcc':
     PLATFORM    = 'gcc'
-    EXEC_PATH   = 'D:/SourceryGCC/bin'
+    EXEC_PATH   = r'D:/SourceryGCC/bin'
 elif CROSS_TOOL == 'keil':
     PLATFORM    = 'armcc'
-    EXEC_PATH   = 'C:/Keil_v5'
+    EXEC_PATH   = r'C:/Keil_v5'
 elif CROSS_TOOL == 'iar':
     print('================ERROR============================')
     print('Not support iar yet!')
@@ -55,7 +55,8 @@ if PLATFORM == 'gcc':
         CFLAGS += ' -O2'
 
     POST_ACTION = OBJCPY + ' -O binary $TARGET rtthread.bin\n' + SIZE + ' $TARGET \n'
-
+    POST_ACTION += OBJCPY + ' -O ihex $TARGET rt-thread.hex\n'
+    
 elif PLATFORM == 'armcc':
     # toolchains
     CC = 'armcc'

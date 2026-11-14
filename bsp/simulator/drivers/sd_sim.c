@@ -14,7 +14,7 @@
 #include <dfs.h>
 
 #define DBG_TAG    "sd.sim"
-#define DBG_LVL    DBG_INFO
+#define DBG_LVL    DBG_WARNING
 #include <rtdbg.h>
 
 #define SDCARD_SIM  "sd.bin"
@@ -52,7 +52,7 @@ static rt_err_t rt_sdcard_close(rt_device_t dev)
  * buffer:
  * size  : how many blocks
  */
-static rt_size_t rt_sdcard_read(rt_device_t device, rt_off_t position, void *buffer, rt_size_t size)
+static rt_ssize_t rt_sdcard_read(rt_device_t device, rt_off_t position, void *buffer, rt_size_t size)
 {
     struct sdcard_device *sd;
     int result = 0;
@@ -80,7 +80,7 @@ _err:
  * buffer:
  * size  : how many blocks
  */
-static rt_size_t rt_sdcard_write(rt_device_t device, rt_off_t position, const void *buffer, rt_size_t size)
+static rt_ssize_t rt_sdcard_write(rt_device_t device, rt_off_t position, const void *buffer, rt_size_t size)
 {
     struct sdcard_device *sd;
     int result = 0;
@@ -140,7 +140,7 @@ rt_err_t rt_hw_sdcard_init(const char *spi_device_name)
     sd = &_sdcard;
     device = &(sd->parent);
 
-    lock = rt_mutex_create("lock", RT_IPC_FLAG_FIFO);
+    lock = rt_mutex_create("lock", RT_IPC_FLAG_PRIO);
     if (lock == RT_NULL)
     {
         LOG_E("Create mutex in rt_hw_sdcard_init failed!");
@@ -167,7 +167,7 @@ rt_err_t rt_hw_sdcard_init(const char *spi_device_name)
             if (ptr == NULL)
             {
                 LOG_E("malloc error, no memory!");
-                return RT_ERROR;
+                return -RT_ERROR;
             }
             memset(ptr, 0x0, 1024 * 1024);
 
